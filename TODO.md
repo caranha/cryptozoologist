@@ -1,0 +1,12 @@
+- spawn monsters
+  - random monster
+- monster behavior
+  - fleeing monster
+  - hunting monster
+- player actions / interface
+  - take picture (flash the screen)
+- collisions
+  - player hurt / camera broken
+- messages
+- game mode
+- points for taking pictures

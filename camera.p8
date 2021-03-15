@@ -1,8 +1,14 @@
 pico-8 cartridge // http://www.pico-8.com
 version 32
 __lua__
+-- base funcs
+
+-- bugs
+-- stairs can spawn blocking paths
+
+
 function _init()
- add_player()
+ init_player()
 	make_level()	
  
 end
@@ -35,6 +41,10 @@ mapy = 20
 function make_level()
 
 	fogofwar = {}
+	ents = {}
+	entmap = {}
+	
+	add(ents,player)
 
 	for i = 0,mapx do
 		for j = 0,mapx do
@@ -148,9 +158,6 @@ end
 
 -->8
 -- entities
-
-ents = {}
-entmap = {}
 	
 function entmap_get(x,y)
 	local i = xy2i(x,y)
@@ -204,13 +211,10 @@ function ent_setpos(e,x,y)
 end
 
 
-function add_player()
+function init_player()
 	player = {spr = 16, 
 											x = 0, 
 											y = 0}
-	add(ents,player)
-	-- ent_setpos(player,player.x,player.y)
-
 end
 
 function add_upstairs(x,y)
@@ -242,6 +246,7 @@ end
 
 
 -->8
+-- interface
 
 function input_move()
 	if (btnp(➡️)) move_ent(player.x+1, player.y, player)

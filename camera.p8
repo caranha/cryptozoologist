@@ -5,6 +5,7 @@ __lua__
 
 -- bugs
 -- stairs can spawn blocking paths
+-- mobs should not appear in fog of war
 
 
 function _init()
@@ -56,6 +57,10 @@ function make_level()
 	clearwalls()
 	add_anyempty(add_upstairs)
 	add_anyempty(add_downstairs)
+
+	add_anyempty(make_slime)
+	add_anyempty(make_slime)
+	add_anyempty(make_slime)
 end
 
 function add_anyempty(makefun)
@@ -186,9 +191,10 @@ function move_ent(x,y,e)
 	-- check for entity collision
 	local te = entmap_get(x,y)
 	for ent in all(te) do
-		if (ent.spr == 2) then
-			make_level()
-			return
+		if ent.collide then
+			printh("collide")
+			local end_turn = ent.collide(ent,e)
+			if (end_turn) return
 		end	
 	end
 	
@@ -196,6 +202,20 @@ function move_ent(x,y,e)
 
 	ent_setpos(e,x,y)
 end
+
+function do_turn()
+	for e in all(ents) do
+		if e.act then
+			--	printh(e.act)
+			e.act += e.speed
+			while e.act >= 1 do
+				e.turn(e)
+				e.act -= 1
+			end
+		end
+	end
+end
+
 
 function ent_setpos(e,x,y)
 	local tfrom = entmap_get(e.x, e.y)
@@ -216,6 +236,48 @@ function init_player()
 											x = 0, 
 											y = 0}
 end
+
+function make_slime(x,y)
+	local slime = {
+		spr = 17,
+		x = x,
+		y = y,
+		speed = 1,
+		act = 0,
+		turn = slime_turn,
+		collide = slime_collide
+	}
+	add(ents, slime)
+	ent_setpos(slime, slime.x, slime.y)
+end
+
+function slime_turn(e)
+
+	local dx = 0
+	local dy = 0
+	local ox = e.x
+	local oy = e.y
+	
+	if e.pushed == true then
+		dx = e.dx
+		dy = e.dy
+	else
+		repeat
+			dx = flr(rnd(3))-1
+			dy = flr(rnd(3))-1
+		until (dx*dy != 0)
+	end
+	
+	move_ent(e.x+dx, e.y+dy, e)
+	if (e.x == ox and e.y == oy) e.pushed = false 
+end
+
+function slime_collide(s,e)
+	s.dx = s.x - e.x
+	s.dy = s.y - e.y
+	s.pushed = true
+end
+
 
 function add_upstairs(x,y)
 	local us = {spr = 3, 
@@ -249,10 +311,10 @@ end
 -- interface
 
 function input_move()
-	if (btnp(➡️)) move_ent(player.x+1, player.y, player)
-	if (btnp(⬅️)) move_ent(player.x-1, player.y, player)
-	if (btnp(⬆️)) move_ent(player.x, player.y-1, player)
-	if (btnp(⬇️)) move_ent(player.x, player.y+1, player)
+	if (btnp(➡️)) move_ent(player.x+1, player.y, player) do_turn()
+	if (btnp(⬅️)) move_ent(player.x-1, player.y, player) do_turn()
+	if (btnp(⬆️)) move_ent(player.x, player.y-1, player) do_turn()
+	if (btnp(⬇️)) move_ent(player.x, player.y+1, player) do_turn()
 end
 
 function defog(x,y)
@@ -280,10 +342,10 @@ __gfx__
 00000000366366360033330000000000500000050000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00777700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-07000070000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-07700770000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-07000070000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-07077070000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+07000070003300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+07700770036333000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+07000070033363300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+07077070333333330000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00777700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __gff__
 0001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
